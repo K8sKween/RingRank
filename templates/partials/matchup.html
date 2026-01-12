@@ -1,0 +1,55 @@
+{{define "matchup"}}
+<div class="prompt">{{.Prompt}}</div>
+
+<form class="matchup" hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML">
+    <input type="hidden" name="ring_a" value="{{.RingA}}">
+    <input type="hidden" name="ring_b" value="{{.RingB}}">
+
+    <div class="ring-option">
+        <button type="submit" name="winner" value="{{.RingA}}" class="ring-btn" id="left-btn">
+            <img src="/rings/{{.RingA}}" alt="Ring A">
+            <span class="ring-label">&larr; Left (A)</span>
+        </button>
+    </div>
+
+    <div class="vs">VS</div>
+
+    <div class="ring-option">
+        <button type="submit" name="winner" value="{{.RingB}}" class="ring-btn" id="right-btn">
+            <img src="/rings/{{.RingB}}" alt="Ring B">
+            <span class="ring-label">Right (D) &rarr;</span>
+        </button>
+    </div>
+</form>
+
+<div class="vote-controls">
+    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
+        <input type="hidden" name="ring_a" value="{{.RingA}}">
+        <input type="hidden" name="ring_b" value="{{.RingB}}">
+        <button type="submit" name="winner" value="same" class="btn btn-small" id="same-btn">
+            Same (S)
+        </button>
+    </form>
+    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
+        <input type="hidden" name="ring_a" value="{{.RingA}}">
+        <input type="hidden" name="ring_b" value="{{.RingB}}">
+        <button type="submit" name="winner" value="skip" class="btn btn-small" id="skip-btn">
+            Skip (X)
+        </button>
+    </form>
+    <form hx-post="/undo/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
+        <button type="submit" class="btn btn-small btn-danger" id="undo-btn">
+            Undo (Z)
+        </button>
+    </form>
+</div>
+
+<div class="keyboard-hint">
+    Keys: A/&larr; Left | D/&rarr; Right | S Same | X Skip | Z Undo
+</div>
+
+<!-- Out-of-band swaps for real-time progress updates -->
+<div id="progress-fill" hx-swap-oob="true" class="progress-fill" style="width: {{.Confidence}}%"></div>
+<span id="progress-count" hx-swap-oob="true">{{.Progress}}</span>
+<span id="confidence-text" hx-swap-oob="true" class="confidence">{{printf "%.0f" .Confidence}}% confident</span>
+{{end}}

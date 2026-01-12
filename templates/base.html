@@ -1,0 +1,144 @@
+{{define "header"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RingRank</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedAccent = localStorage.getItem('accentColor') || '#ff6b6b';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.documentElement.style.setProperty('--accent-color', savedAccent);
+        })();
+    </script>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">RINGRANK</a>
+        <nav>
+            <a href="/">Categories</a>
+            <a href="/results">Results</a>
+            <a href="/manage">Manage</a>
+            <a href="/report">PDF Report</a>
+            <a href="/export">Export JSON</a>
+            <div class="theme-dropdown">
+                <button class="theme-toggle btn btn-small" id="theme-toggle">
+                    <span id="theme-icon">◐</span> Theme
+                </button>
+                <div class="theme-menu" id="theme-menu">
+                    <div class="theme-option" data-theme="light">
+                        <span>Light</span>
+                        <div class="color-swatch" style="background: #ffffff; border: 1px solid #000;"></div>
+                    </div>
+                    <div class="theme-option" data-theme="dark">
+                        <span>Dark</span>
+                        <div class="color-swatch" style="background: #1a1a1a;"></div>
+                    </div>
+                    <div class="theme-option" data-theme="light-accent">
+                        <span>Light + Accent</span>
+                        <input type="color" class="color-picker" id="light-accent-picker" value="#ff6b6b">
+                    </div>
+                    <div class="theme-option" data-theme="dark-accent">
+                        <span>Dark + Accent</span>
+                        <input type="color" class="color-picker" id="dark-accent-picker" value="#ff6b6b">
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+{{end}}
+
+{{define "footer"}}
+    </main>
+    <script>
+    (function() {
+        const toggle = document.getElementById('theme-toggle');
+        const menu = document.getElementById('theme-menu');
+        const icon = document.getElementById('theme-icon');
+        const lightPicker = document.getElementById('light-accent-picker');
+        const darkPicker = document.getElementById('dark-accent-picker');
+
+        // Load saved accent color into pickers
+        const savedAccent = localStorage.getItem('accentColor') || '#ff6b6b';
+        if (lightPicker) lightPicker.value = savedAccent;
+        if (darkPicker) darkPicker.value = savedAccent;
+
+        // Update icon and active state
+        function updateUI() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
+            const icons = { 'light': '☀', 'dark': '☾', 'light-accent': '☀', 'dark-accent': '☾' };
+            icon.textContent = icons[theme] || '◐';
+
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === theme);
+            });
+        }
+
+        // Toggle menu
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== toggle) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Theme selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                // Don't trigger if clicking the color picker
+                if (e.target.classList.contains('color-picker')) return;
+
+                const theme = option.dataset.theme;
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                updateUI();
+
+                // Close menu for non-accent themes
+                if (!theme.includes('accent')) {
+                    menu.classList.remove('show');
+                }
+            });
+        });
+
+        // Accent color pickers
+        function handleColorChange(e, theme) {
+            const color = e.target.value;
+            document.documentElement.style.setProperty('--accent-color', color);
+            localStorage.setItem('accentColor', color);
+
+            // Sync both pickers
+            if (lightPicker) lightPicker.value = color;
+            if (darkPicker) darkPicker.value = color;
+
+            // Switch to this accent theme
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateUI();
+        }
+
+        if (lightPicker) {
+            lightPicker.addEventListener('input', (e) => handleColorChange(e, 'light-accent'));
+            lightPicker.addEventListener('click', (e) => e.stopPropagation());
+        }
+        if (darkPicker) {
+            darkPicker.addEventListener('input', (e) => handleColorChange(e, 'dark-accent'));
+            darkPicker.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        updateUI();
+    })();
+    </script>
+</body>
+</html>
+{{end}}

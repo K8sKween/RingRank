@@ -1,0 +1,130 @@
+{{template "header" .}}
+
+<h1>Generate PDF Report</h1>
+
+<p style="text-align: center; margin-bottom: 2rem; opacity: 0.7;">
+    Create a beautifully formatted PDF report of your ring preferences
+</p>
+
+<div class="report-options">
+    <form action="/report/generate" method="GET" class="report-form">
+        <div class="option-group">
+            <h2>Scope</h2>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="scope" value="top10" checked>
+                    <span class="radio-label">Top 10</span>
+                    <span class="radio-desc">Show only the top 10 rings per category</span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="scope" value="all">
+                    <span class="radio-label">All Rings</span>
+                    <span class="radio-desc">Include complete rankings ({{.Stats.general}} rings)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="option-group">
+            <h2>Categories</h2>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="category" value="all" checked>
+                    <span class="radio-label">All Categories</span>
+                    <span class="radio-desc">Include all {{len .Categories}} categories in the report</span>
+                </label>
+                {{range .Categories}}
+                <label class="radio-option">
+                    <input type="radio" name="category" value="{{.}}">
+                    <span class="radio-label">{{index $.CategoryLabels .}} Only</span>
+                    <span class="radio-desc">{{index $.Stats .}} comparisons</span>
+                </label>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="report-actions">
+            <button type="submit" class="btn btn-large">Generate PDF Report</button>
+        </div>
+    </form>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/results" class="btn btn-small">Back to Results</a>
+</div>
+
+<style>
+.report-options {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.report-form {
+    border: 2px solid #000;
+    padding: 2rem;
+}
+
+.option-group {
+    margin-bottom: 2rem;
+}
+
+.option-group h2 {
+    margin-bottom: 1rem;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.radio-option:hover {
+    border-color: #000;
+}
+
+.radio-option input[type="radio"] {
+    margin-top: 0.25rem;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+    font-weight: bold;
+}
+
+.radio-label {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.radio-desc {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-left: auto;
+}
+
+.report-actions {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+</style>
+
+{{template "footer" .}}

@@ -1,0 +1,22 @@
+{{template "header" .}}
+
+<h1>Choose Your Ring</h1>
+
+<p style="text-align: center; margin-bottom: 2rem; opacity: 0.7;">
+    Select a category to start comparing rings
+</p>
+
+<div class="categories">
+    {{range .Categories}}
+    <a href="/vote/{{.}}" class="category-card">
+        <h3>{{index $.CategoryLabels .}}</h3>
+        <div class="stat">{{index $.Stats .}} comparisons</div>
+    </a>
+    {{end}}
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/results" class="btn">View Results</a>
+</div>
+
+{{template "footer" .}}

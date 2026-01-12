@@ -1,0 +1,27 @@
+# Binaries
+ringrank
+ringchooser
+server
+*.exe
+
+# Data files (user-specific)
+data/results.json
+data/*.backup.json
+
+# User images (keep directory structure)
+rings/*
+!rings/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+*.zip

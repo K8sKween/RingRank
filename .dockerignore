@@ -1,0 +1,25 @@
+# Ignore data and images (mounted as volumes)
+data/
+rings/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+ringrank
+ringchooser
+*.exe
+
+# Documentation
+*.md
+LICENSE
+screenshots/
+
+# Claude
+.claude/
+CLAUDE.md

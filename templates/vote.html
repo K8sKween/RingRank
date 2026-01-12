@@ -1,0 +1,55 @@
+{{template "header" .}}
+
+<div class="vote-container">
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: {{.Confidence}}%"></div>
+        </div>
+        <div class="progress-text" id="progress-text">
+            <span id="progress-count">{{.Progress}}</span> comparisons in {{.CategoryLabel}} |
+            <span class="confidence" id="confidence-text">{{printf "%.0f" .Confidence}}% confident</span>
+        </div>
+    </div>
+
+    <div id="matchup-container">
+        {{template "matchup" .}}
+    </div>
+
+    <div class="actions">
+        <a href="/" class="btn btn-small">Back to Categories</a>
+        <a href="/results" class="btn btn-small">View Results</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('keydown', function(e) {
+    // Ignore if typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const key = e.key.toLowerCase();
+
+    if (key === 'arrowleft' || key === 'a') {
+        e.preventDefault();
+        const leftBtn = document.getElementById('left-btn');
+        if (leftBtn) leftBtn.click();
+    } else if (key === 'arrowright' || key === 'd') {
+        e.preventDefault();
+        const rightBtn = document.getElementById('right-btn');
+        if (rightBtn) rightBtn.click();
+    } else if (key === 's') {
+        e.preventDefault();
+        const sameBtn = document.getElementById('same-btn');
+        if (sameBtn) sameBtn.click();
+    } else if (key === 'x') {
+        e.preventDefault();
+        const skipBtn = document.getElementById('skip-btn');
+        if (skipBtn) skipBtn.click();
+    } else if (key === 'z') {
+        e.preventDefault();
+        const undoBtn = document.getElementById('undo-btn');
+        if (undoBtn) undoBtn.click();
+    }
+});
+</script>
+
+{{template "footer" .}}

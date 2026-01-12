@@ -1,0 +1,765 @@
+{{template "header" .}}
+
+<div class="manage-container">
+    <h1>Manage Images</h1>
+    <p class="subtitle">{{.ImageCount}} images loaded</p>
+
+    <div class="upload-section">
+        <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-content">
+                <div class="drop-icon">+</div>
+                <p>Drag & drop images here</p>
+                <p class="drop-hint">or click to browse</p>
+            </div>
+            <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+        </div>
+
+        <div class="upload-buttons">
+            <button class="btn" onclick="document.getElementById('file-input').click()">
+                Select Files
+            </button>
+            <button class="btn" onclick="document.getElementById('folder-input').click()">
+                Select Folder
+            </button>
+            <input type="file" id="folder-input" webkitdirectory multiple accept="image/*" style="display: none;">
+        </div>
+
+        <div id="upload-status" class="upload-status"></div>
+    </div>
+
+    <div class="categories-section">
+        <h2>Categories <span class="count">({{.CategoryCount}})</span></h2>
+        <div class="category-list" id="category-list">
+            {{range .Categories}}
+            <div class="category-card" data-id="{{.ID}}">
+                <div class="category-info">
+                    <strong>{{.Label}}</strong>
+                    <span class="category-id">{{.ID}}</span>
+                    <span class="category-prompt">{{.Prompt}}</span>
+                </div>
+                <div class="category-actions">
+                    <button class="btn btn-small" onclick="editCategory('{{.ID}}', '{{.Label}}', '{{.Prompt}}')">Edit</button>
+                    <button class="btn btn-small" onclick="confirmDeleteCategory('{{.ID}}', '{{.Label}}')">Delete</button>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        <div class="add-category-form">
+            <h3>Add New Category</h3>
+            <div class="form-row">
+                <input type="text" id="new-cat-label" placeholder="Label (e.g., Brilliance)" class="input input-wide">
+            </div>
+            <div class="form-row">
+                <input type="text" id="new-cat-prompt" placeholder="Prompt (e.g., Which has better brilliance?)" class="input input-wide">
+            </div>
+            <button class="btn" onclick="addCategory()">Add Category</button>
+        </div>
+    </div>
+
+    <div class="images-section">
+        <h2>Current Images</h2>
+        <div class="image-grid" id="image-grid">
+            {{range .Images}}
+            <div class="image-card" data-filename="{{.Filename}}">
+                <div class="image-wrapper">
+                    <img src="/rings/{{.Filename}}" alt="{{.Filename}}">
+                    <button class="delete-btn" onclick="confirmDelete('{{.Filename}}')" title="Delete">X</button>
+                </div>
+                <div class="image-info">
+                    <span class="image-name">{{.Filename}}</span>
+                    {{if .HasRankings}}<span class="has-rankings">Has rankings</span>{{end}}
+                </div>
+            </div>
+            {{else}}
+            <p class="no-images">No images yet. Upload some to get started!</p>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+        <h3>Delete Image?</h3>
+        <p class="modal-message" id="modal-message"></p>
+        <p class="modal-warning">This will also remove all rankings for this image.</p>
+        <label class="dont-ask-label">
+            <input type="checkbox" id="dont-ask-checkbox">
+            Don't ask again this session
+        </label>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-delete" id="confirm-delete-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+        <h3>Edit Category</h3>
+        <input type="hidden" id="edit-cat-id">
+        <div class="form-row">
+            <input type="text" id="edit-cat-label" placeholder="Label" class="input input-wide">
+        </div>
+        <div class="form-row">
+            <input type="text" id="edit-cat-prompt" placeholder="Prompt" class="input input-wide">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeEditModal()">Cancel</button>
+            <button class="btn" onclick="saveCategory()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Category Confirmation Modal -->
+<div class="modal-overlay" id="cat-delete-modal">
+    <div class="modal">
+        <h3>Delete Category?</h3>
+        <p class="modal-message" id="cat-modal-message"></p>
+        <p class="modal-warning">This will remove all rankings for this category.</p>
+        <div class="modal-buttons">
+            <button class="btn" onclick="closeCatDeleteModal()">Cancel</button>
+            <button class="btn btn-delete" onclick="deleteCategory()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.manage-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+}
+
+.upload-section {
+    margin-bottom: 40px;
+}
+
+.drop-zone {
+    border: 3px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 60px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.drop-icon {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.drop-hint {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.upload-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.upload-status {
+    margin-top: 15px;
+    text-align: center;
+    min-height: 24px;
+}
+
+.upload-status.success {
+    color: var(--success-color);
+}
+
+.upload-status.error {
+    color: var(--danger-color);
+}
+
+.images-section h2 {
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.image-card {
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 150px;
+}
+
+.image-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-info {
+    padding: 8px;
+    font-size: 11px;
+}
+
+.image-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.has-rankings {
+    display: block;
+    color: var(--success-color);
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-card:hover .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+.no-images {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px;
+}
+
+/* Modal styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal {
+    background: var(--bg-primary);
+    border: 3px solid var(--border-color);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: var(--shadow);
+}
+
+.modal h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+}
+
+.modal-message {
+    margin: 0 0 8px 0;
+    word-break: break-all;
+}
+
+.modal-warning {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0 0 16px 0;
+}
+
+.dont-ask-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.dont-ask-label input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-delete {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.btn-delete:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--bg-primary);
+}
+
+/* Category Management */
+.categories-section {
+    margin-bottom: 40px;
+}
+
+.categories-section h2 {
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.categories-section h2 .count {
+    font-weight: normal;
+    color: var(--text-secondary);
+}
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.category-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--card-bg);
+    text-align: left;
+}
+
+.category-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+}
+
+.category-info strong,
+.category-info span {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.category-id {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.category-prompt {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.category-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.add-category-form {
+    padding: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+}
+
+.add-category-form h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input {
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    flex: 1;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.input-wide {
+    width: 100%;
+}
+
+.btn-small {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.category-actions .btn-small {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.category-actions .btn-small:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+</style>
+
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const folderInput = document.getElementById('folder-input');
+const status = document.getElementById('upload-status');
+const modal = document.getElementById('delete-modal');
+const modalMessage = document.getElementById('modal-message');
+const dontAskCheckbox = document.getElementById('dont-ask-checkbox');
+const confirmBtn = document.getElementById('confirm-delete-btn');
+
+let pendingFilename = null;
+let skipConfirmation = false;
+
+// Drag and drop
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+});
+
+// File inputs
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+folderInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+async function handleFiles(files) {
+    if (!files.length) return;
+
+    const formData = new FormData();
+    let count = 0;
+
+    for (const file of files) {
+        if (file.type.startsWith('image/')) {
+            formData.append('images', file);
+            count++;
+        }
+    }
+
+    if (count === 0) {
+        status.textContent = 'No valid images selected';
+        status.className = 'upload-status error';
+        return;
+    }
+
+    status.textContent = `Uploading ${count} image(s)...`;
+    status.className = 'upload-status';
+
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            status.textContent = `Successfully uploaded ${result.uploaded} image(s)`;
+            status.className = 'upload-status success';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error('Upload failed');
+        }
+    } catch (err) {
+        status.textContent = 'Upload failed: ' + err.message;
+        status.className = 'upload-status error';
+    }
+}
+
+function confirmDelete(filename) {
+    if (skipConfirmation) {
+        deleteImage(filename);
+        return;
+    }
+
+    pendingFilename = filename;
+    modalMessage.textContent = `Delete "${filename}"?`;
+    modal.classList.add('show');
+}
+
+function closeModal() {
+    modal.classList.remove('show');
+    pendingFilename = null;
+}
+
+confirmBtn.addEventListener('click', () => {
+    if (dontAskCheckbox.checked) {
+        skipConfirmation = true;
+    }
+    if (pendingFilename) {
+        deleteImage(pendingFilename);
+    }
+    closeModal();
+});
+
+// Close modal on overlay click
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+        closeModal();
+    }
+});
+
+async function deleteImage(filename) {
+    try {
+        const response = await fetch('/delete-image', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `filename=${encodeURIComponent(filename)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const card = document.querySelector(`[data-filename="${filename}"]`);
+            if (card) card.remove();
+
+            const countEl = document.querySelector('.subtitle');
+            const currentCount = parseInt(countEl.textContent);
+            countEl.textContent = `${currentCount - 1} images loaded`;
+        }
+    } catch (err) {
+        alert('Failed to delete: ' + err.message);
+    }
+}
+
+// Category Management
+function generateId(label) {
+    return label
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')  // Remove special characters
+        .replace(/\s+/g, '_')          // Replace spaces with underscores
+        .replace(/^_+|_+$/g, '')       // Trim leading/trailing underscores
+        .replace(/_+/g, '_')           // Collapse multiple underscores
+        || 'category';                 // Fallback if empty
+}
+
+async function addCategory() {
+    const label = document.getElementById('new-cat-label').value.trim();
+    const prompt = document.getElementById('new-cat-prompt').value.trim();
+
+    if (!label || !prompt) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    const id = generateId(label);
+
+    try {
+        const response = await fetch('/add-category', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `id=${encodeURIComponent(id)}&label=${encodeURIComponent(label)}&prompt=${encodeURIComponent(prompt)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            location.reload();
+        } else {
+            alert(result.error || 'Failed to add category');
+        }
+    } catch (err) {
+        alert('Failed to add category: ' + err.message);
+    }
+}
+
+let pendingCategoryId = null;
+let pendingCategoryLabel = null;
+
+function editCategory(id, label, prompt) {
+    document.getElementById('edit-cat-id').value = id;
+    document.getElementById('edit-cat-label').value = label;
+    document.getElementById('edit-cat-prompt').value = prompt;
+    document.getElementById('edit-modal').classList.add('show');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.remove('show');
+}
+
+async function saveCategory() {
+    const id = document.getElementById('edit-cat-id').value;
+    const label = document.getElementById('edit-cat-label').value.trim();
+    const prompt = document.getElementById('edit-cat-prompt').value.trim();
+
+    if (!label || !prompt) {
+        alert('Please fill in all fields');
+        return;
+    }
+
+    try {
+        const response = await fetch('/update-category', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `id=${encodeURIComponent(id)}&label=${encodeURIComponent(label)}&prompt=${encodeURIComponent(prompt)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            location.reload();
+        } else {
+            alert(result.error || 'Failed to update category');
+        }
+    } catch (err) {
+        alert('Failed to update category: ' + err.message);
+    }
+}
+
+function confirmDeleteCategory(id, label) {
+    pendingCategoryId = id;
+    pendingCategoryLabel = label;
+    document.getElementById('cat-modal-message').textContent = `Delete category "${label}"?`;
+    document.getElementById('cat-delete-modal').classList.add('show');
+}
+
+function closeCatDeleteModal() {
+    document.getElementById('cat-delete-modal').classList.remove('show');
+    pendingCategoryId = null;
+    pendingCategoryLabel = null;
+}
+
+async function deleteCategory() {
+    if (!pendingCategoryId) return;
+
+    try {
+        const response = await fetch('/delete-category', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `id=${encodeURIComponent(pendingCategoryId)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const card = document.querySelector(`.category-card[data-id="${pendingCategoryId}"]`);
+            if (card) card.remove();
+
+            const countEl = document.querySelector('.categories-section h2 .count');
+            const currentCount = parseInt(countEl.textContent.match(/\d+/)[0]);
+            countEl.textContent = `(${currentCount - 1})`;
+
+            closeCatDeleteModal();
+        } else {
+            alert(result.error || 'Failed to delete category');
+        }
+    } catch (err) {
+        alert('Failed to delete category: ' + err.message);
+    }
+}
+
+// Close modals on overlay click
+document.getElementById('edit-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'edit-modal') closeEditModal();
+});
+document.getElementById('cat-delete-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'cat-delete-modal') closeCatDeleteModal();
+});
+
+// Close modals on Escape (extend existing handler)
+const origKeyHandler = document.onkeydown;
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('edit-modal').classList.contains('show')) {
+            closeEditModal();
+        }
+        if (document.getElementById('cat-delete-modal').classList.contains('show')) {
+            closeCatDeleteModal();
+        }
+    }
+});
+</script>
+
+{{template "footer" .}}

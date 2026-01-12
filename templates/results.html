@@ -1,0 +1,75 @@
+{{template "header" .}}
+
+<h1>Your Preferences</h1>
+
+{{range $cat := .Categories}}
+<section class="results-section">
+    <div class="results-header">
+        <h2>{{index $.CategoryLabels $cat}}</h2>
+        <div>
+            <span style="opacity: 0.7; margin-right: 1rem;">
+                {{index $.Stats $cat}} comparisons |
+                {{index $.Confidence $cat}}% confident
+            </span>
+            <a href="/vote/{{$cat}}" class="btn btn-small">Continue</a>
+            <form action="/reset/{{$cat}}" method="POST" style="display: inline;"
+                  onsubmit="return confirm('Reset all {{index $.CategoryLabels $cat}} scores? This cannot be undone.')">
+                <button type="submit" class="btn btn-small btn-danger">Reset</button>
+            </form>
+        </div>
+    </div>
+
+    {{$rankings := index $.Rankings $cat}}
+    {{if $rankings}}
+    <ol class="ranking-list" id="list-{{$cat}}">
+        {{range $i, $ring := $rankings}}
+        <li class="ranking-item {{if ge $i 10}}hidden-item{{end}}" data-index="{{$i}}">
+            <span class="rank">{{add $i 1}}</span>
+            <img src="/rings/{{$ring.Filename}}" alt="{{$ring.Filename}}" class="ranking-thumb">
+            <div class="ranking-info">
+                <div class="ranking-name">{{$ring.Filename}}</div>
+                <div class="ranking-score">
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: {{percent (index $ring.Scores $cat)}}%"></div>
+                    </div>
+                    <span class="score-value">{{printf "%.0f" (index $ring.Scores $cat)}}</span>
+                    <span class="rd-indicator {{rdClass (index $ring.RD $cat)}}" title="Confidence: {{rdConfidence (index $ring.RD $cat)}}%">
+                        ±{{printf "%.0f" (index $ring.RD $cat)}}
+                    </span>
+                </div>
+            </div>
+        </li>
+        {{end}}
+    </ol>
+    {{if gt (len $rankings) 10}}
+    <button class="btn btn-small expand-btn" onclick="toggleList('{{$cat}}')" id="btn-{{$cat}}">
+        Show all {{len $rankings}} rings
+    </button>
+    {{end}}
+    {{else}}
+    <div class="empty-state">No comparisons yet. <a href="/vote/{{$cat}}">Start voting</a></div>
+    {{end}}
+</section>
+{{end}}
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/export" class="btn">Export JSON</a>
+</div>
+
+<script>
+function toggleList(cat) {
+    const list = document.getElementById('list-' + cat);
+    const btn = document.getElementById('btn-' + cat);
+    const hiddenItems = list.querySelectorAll('.hidden-item');
+    const isExpanded = btn.dataset.expanded === 'true';
+
+    hiddenItems.forEach(item => {
+        item.style.display = isExpanded ? 'none' : 'flex';
+    });
+
+    btn.dataset.expanded = isExpanded ? 'false' : 'true';
+    btn.textContent = isExpanded ? 'Show all ' + (list.children.length) + ' rings' : 'Show top 10 only';
+}
+</script>
+
+{{template "footer" .}}
