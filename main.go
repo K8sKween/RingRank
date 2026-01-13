@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
 	"math"
 	"math/rand"
@@ -19,6 +21,9 @@ import (
 	text_template "text/template"
 	"time"
 )
+
+//go:embed templates/*.html templates/partials/*.html templates/report/*.tmpl static/*
+var embeddedFS embed.FS
 
 // Category represents a comparison category
 type Category struct {
@@ -85,6 +90,15 @@ func NewApp() *App {
 		dataPath: "data/results.json",
 		ringsDir: "rings",
 	}
+
+	// Create required directories if they don't exist
+	if err := os.MkdirAll("data", 0755); err != nil {
+		log.Printf("Warning: could not create data directory: %v", err)
+	}
+	if err := os.MkdirAll("rings", 0755); err != nil {
+		log.Printf("Warning: could not create rings directory: %v", err)
+	}
+
 	app.loadTemplates()
 	app.loadOrInitResults()
 	return app
@@ -113,8 +127,8 @@ func (app *App) loadTemplates() {
 		},
 	}
 
-	app.templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
-	template.Must(app.templates.ParseGlob("templates/partials/*.html"))
+	app.templates = template.Must(template.New("").Funcs(funcMap).ParseFS(embeddedFS, "templates/*.html"))
+	template.Must(app.templates.ParseFS(embeddedFS, "templates/partials/*.html"))
 }
 
 func (app *App) loadOrInitResults() {
@@ -1081,9 +1095,8 @@ func (app *App) handleReport(w http.ResponseWriter, r *http.Request) {
 
 	app.mu.RUnlock()
 
-	// Generate Typst file
-	tmplPath := "templates/report/report.typ.tmpl"
-	tmpl, err := text_template.ParseFiles(tmplPath)
+	// Generate Typst file from embedded template
+	tmpl, err := text_template.ParseFS(embeddedFS, "templates/report/report.typ.tmpl")
 	if err != nil {
 		log.Printf("Failed to parse report template: %v", err)
 		http.Error(w, "Failed to parse report template", http.StatusInternalServerError)
@@ -1306,8 +1319,7 @@ func (app *App) handleManage(w http.ResponseWriter, r *http.Request) {
 
 	categories := app.getCategories()
 
-	tmpl := template.Must(template.ParseFiles("templates/base.html", "templates/manage.html"))
-	tmpl.ExecuteTemplate(w, "manage.html", map[string]interface{}{
+	app.templates.ExecuteTemplate(w, "manage.html", map[string]interface{}{
 		"Images":        images,
 		"ImageCount":    len(images),
 		"Categories":    categories,
@@ -1632,9 +1644,13 @@ func main() {
 	http.HandleFunc("/delete-category", app.handleDeleteCategory)
 	http.HandleFunc("/update-category", app.handleUpdateCategory)
 
-	// Static files
+	// Static files - rings from disk (user data), static assets from embedded FS
 	http.Handle("/rings/", http.StripPrefix("/rings/", http.FileServer(http.Dir("rings"))))
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	staticFS, err := fs.Sub(embeddedFS, "static")
+	if err != nil {
+		log.Fatal("Failed to create static sub-filesystem:", err)
+	}
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
 	log.Println("RingRank running at http://localhost:8089")
 	log.Fatal(http.ListenAndServe(":8089", nil))
