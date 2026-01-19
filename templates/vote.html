@@ -1,13 +1,19 @@
 {{template "header" .}}
 
-<div class="vote-container">
-    <div class="progress-container">
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill" style="width: {{.Confidence}}%"></div>
+<div class="w-full max-w-5xl mx-auto p-8 lg:p-12">
+    <!-- Category Title -->
+    <h1 class="text-3xl md:text-4xl font-serif text-center text-white mb-2">
+        {{.CategoryLabel}}
+    </h1>
+
+    <!-- Progress Bar -->
+    <div class="max-w-xl mx-auto mb-12">
+        <div class="h-1 bg-rr-gray rounded-full overflow-hidden">
+            <div class="h-full accent-bg transition-all duration-300" id="progress-fill" style="width: {{.Confidence}}%"></div>
         </div>
-        <div class="progress-text" id="progress-text">
-            <span id="progress-count">{{.Progress}}</span> comparisons in {{.CategoryLabel}} |
-            <span class="confidence" id="confidence-text">{{printf "%.0f" .Confidence}}% confident</span>
+        <div class="text-center text-sm text-rr-text-dim mt-3" id="progress-text">
+            <span id="progress-count">{{.Progress}}</span> comparisons |
+            <span class="accent-text font-medium" id="confidence-text">{{printf "%.0f" .Confidence}}% confident</span>
         </div>
     </div>
 
@@ -15,15 +21,19 @@
         {{template "matchup" .}}
     </div>
 
-    <div class="actions">
-        <a href="/" class="btn btn-small">Back to Categories</a>
-        <a href="/results" class="btn btn-small">View Results</a>
+    <!-- Navigation Links -->
+    <div class="flex justify-center gap-6 mt-12">
+        <a href="/categories" class="text-xs uppercase tracking-widest text-rr-text-dim hover:text-rr-pink transition-colors">
+            ← Back to Categories
+        </a>
+        <a href="/results" class="text-xs uppercase tracking-widest text-rr-text-dim hover:text-rr-pink transition-colors">
+            View Results →
+        </a>
     </div>
 </div>
 
 <script>
 document.addEventListener('keydown', function(e) {
-    // Ignore if typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
     const key = e.key.toLowerCase();

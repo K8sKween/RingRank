@@ -5,53 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RingRank</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
-        // Apply saved theme immediately to prevent flash
+        // Apply saved accent color immediately
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            const savedAccent = localStorage.getItem('accentColor') || '#ff6b6b';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            const savedAccent = localStorage.getItem('accentColor') || '#E6AEB6';
             document.documentElement.style.setProperty('--accent-color', savedAccent);
         })();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'rr-dark': '#1F2023',
+                        'rr-darker': '#18181b',
+                        'rr-pink': 'var(--accent-color)',
+                        'rr-pink-muted': '#b08a90',
+                        'rr-gray': '#3a3a3c',
+                        'rr-text-light': '#f5f5f7',
+                        'rr-text-dim': '#a1a1aa',
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
     </script>
+    <style>
+        :root {
+            --accent-color: #E6AEB6;
+        }
+        body {
+            background-color: #1F2023;
+            color: #f5f5f7;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .accent-text { color: var(--accent-color); }
+        .accent-bg { background-color: var(--accent-color); }
+        .accent-border { border-color: var(--accent-color); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1F2023; }
+        ::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+    </style>
 </head>
-<body>
-    <header>
-        <a href="/" class="logo">RINGRANK</a>
-        <nav>
-            <a href="/">Categories</a>
-            <a href="/results">Results</a>
-            <a href="/manage">Manage</a>
-            <a href="/report">PDF Report</a>
-            <a href="/export">Export JSON</a>
-            <div class="theme-dropdown">
-                <button class="theme-toggle btn btn-small" id="theme-toggle">
-                    <span id="theme-icon">◐</span> Theme
+<body class="antialiased selection:bg-rr-pink selection:text-rr-dark">
+    <!-- Header -->
+    <header class="w-full px-8 py-4 border-b border-white/10 flex items-center justify-between text-xs font-medium tracking-wide bg-rr-dark/95 backdrop-blur-sm sticky top-0 z-50">
+        <!-- Left Navigation -->
+        <nav class="flex gap-6 text-rr-text-dim uppercase">
+            <a href="/categories" class="hover:text-rr-pink transition-colors">Categories</a>
+            <a href="/results" class="hover:text-rr-pink transition-colors">Results</a>
+            <a href="/manage" class="hover:text-rr-pink transition-colors">Manage</a>
+        </nav>
+
+        <!-- Center Logo -->
+        <a href="/" class="absolute left-1/2 -translate-x-1/2 font-serif text-2xl tracking-widest">
+            <span class="text-white">RING</span><span class="accent-text">RANK</span>
+        </a>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-6 text-rr-text-dim uppercase">
+            <a href="/export" class="hover:text-rr-pink transition-colors">Export</a>
+            <div class="relative">
+                <button id="theme-toggle" class="flex items-center gap-2 px-3 py-1.5 border border-white/20 rounded-full hover:border-rr-pink transition-colors">
+                    <span>Theme</span>
+                    <svg fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="m6 9 6 6 6-6"></path></svg>
                 </button>
-                <div class="theme-menu" id="theme-menu">
-                    <div class="theme-option" data-theme="light">
-                        <span>Light</span>
-                        <div class="color-swatch" style="background: #ffffff; border: 1px solid #000;"></div>
-                    </div>
-                    <div class="theme-option" data-theme="dark">
-                        <span>Dark</span>
-                        <div class="color-swatch" style="background: #1a1a1a;"></div>
-                    </div>
-                    <div class="theme-option" data-theme="light-accent">
-                        <span>Light + Accent</span>
-                        <input type="color" class="color-picker" id="light-accent-picker" value="#ff6b6b">
-                    </div>
-                    <div class="theme-option" data-theme="dark-accent">
-                        <span>Dark + Accent</span>
-                        <input type="color" class="color-picker" id="dark-accent-picker" value="#ff6b6b">
+                <div id="theme-menu" class="hidden absolute right-0 top-full mt-2 bg-[#2a2a2a] border border-white/10 rounded-lg shadow-xl z-50 min-w-[200px]">
+                    <div class="p-4">
+                        <label class="block text-xs uppercase text-rr-text-dim mb-2">Accent Color</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #E6AEB6;" data-color="#E6AEB6"></button>
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #A8D5F9;" data-color="#A8D5F9"></button>
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #A8F9C5;" data-color="#A8F9C5"></button>
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #F9D5A8;" data-color="#F9D5A8"></button>
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #D5A8F9;" data-color="#D5A8F9"></button>
+                            <button class="color-preset w-8 h-8 rounded-full border-2 border-transparent hover:border-white transition-colors" style="background: #FFFFFF;" data-color="#FFFFFF"></button>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/10">
+                            <label class="block text-xs uppercase text-rr-text-dim mb-2">Custom Color</label>
+                            <input type="color" id="custom-color" class="w-full h-8 rounded cursor-pointer bg-transparent border border-white/20" value="#E6AEB6">
+                        </div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
     </header>
-    <main>
+
+    <main class="flex-grow">
 {{end}}
 
 {{define "footer"}}
@@ -60,83 +112,47 @@
     (function() {
         const toggle = document.getElementById('theme-toggle');
         const menu = document.getElementById('theme-menu');
-        const icon = document.getElementById('theme-icon');
-        const lightPicker = document.getElementById('light-accent-picker');
-        const darkPicker = document.getElementById('dark-accent-picker');
+        const customColor = document.getElementById('custom-color');
+        const presets = document.querySelectorAll('.color-preset');
 
-        // Load saved accent color into pickers
-        const savedAccent = localStorage.getItem('accentColor') || '#ff6b6b';
-        if (lightPicker) lightPicker.value = savedAccent;
-        if (darkPicker) darkPicker.value = savedAccent;
+        // Load saved color
+        const savedAccent = localStorage.getItem('accentColor') || '#E6AEB6';
+        if (customColor) customColor.value = savedAccent;
 
-        // Update icon and active state
-        function updateUI() {
-            const theme = document.documentElement.getAttribute('data-theme') || 'light';
-            const icons = { 'light': '☀', 'dark': '☾', 'light-accent': '☀', 'dark-accent': '☾' };
-            icon.textContent = icons[theme] || '◐';
-
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                opt.classList.toggle('active', opt.dataset.theme === theme);
-            });
+        function setAccentColor(color) {
+            document.documentElement.style.setProperty('--accent-color', color);
+            localStorage.setItem('accentColor', color);
+            if (customColor) customColor.value = color;
         }
 
         // Toggle menu
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('show');
-        });
+        if (toggle) {
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+            });
+        }
 
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
-            if (!menu.contains(e.target) && e.target !== toggle) {
-                menu.classList.remove('show');
+            if (menu && !menu.contains(e.target) && e.target !== toggle) {
+                menu.classList.add('hidden');
             }
         });
 
-        // Theme selection
-        document.querySelectorAll('.theme-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                // Don't trigger if clicking the color picker
-                if (e.target.classList.contains('color-picker')) return;
-
-                const theme = option.dataset.theme;
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-                updateUI();
-
-                // Close menu for non-accent themes
-                if (!theme.includes('accent')) {
-                    menu.classList.remove('show');
-                }
+        // Preset colors
+        presets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                setAccentColor(preset.dataset.color);
             });
         });
 
-        // Accent color pickers
-        function handleColorChange(e, theme) {
-            const color = e.target.value;
-            document.documentElement.style.setProperty('--accent-color', color);
-            localStorage.setItem('accentColor', color);
-
-            // Sync both pickers
-            if (lightPicker) lightPicker.value = color;
-            if (darkPicker) darkPicker.value = color;
-
-            // Switch to this accent theme
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            updateUI();
+        // Custom color picker
+        if (customColor) {
+            customColor.addEventListener('input', (e) => {
+                setAccentColor(e.target.value);
+            });
         }
-
-        if (lightPicker) {
-            lightPicker.addEventListener('input', (e) => handleColorChange(e, 'light-accent'));
-            lightPicker.addEventListener('click', (e) => e.stopPropagation());
-        }
-        if (darkPicker) {
-            darkPicker.addEventListener('input', (e) => handleColorChange(e, 'dark-accent'));
-            darkPicker.addEventListener('click', (e) => e.stopPropagation());
-        }
-
-        updateUI();
     })();
     </script>
 </body>

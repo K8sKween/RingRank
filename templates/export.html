@@ -1,0 +1,130 @@
+{{template "header" .}}
+
+<div class="w-full max-w-3xl mx-auto p-8 lg:p-12">
+    <h1 class="text-4xl md:text-5xl font-serif text-center text-white mb-4">
+        Export <span class="accent-text">Data</span>
+    </h1>
+    <p class="text-rr-text-dim text-center mb-12">
+        Export your ring preferences as JSON data or generate a PDF report
+    </p>
+
+    <div class="space-y-8">
+        <!-- JSON Export Section -->
+        <div class="bg-[#27272a] border border-white/5 rounded-xl p-8 hover:border-white/10 transition-colors">
+            <div class="flex items-start gap-6">
+                <div class="w-12 h-12 accent-text shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-white text-xl font-serif mb-2">Export JSON</h2>
+                    <p class="text-rr-text-dim text-sm mb-6 leading-relaxed">
+                        Download your complete preference data as a JSON file for backup or analysis.
+                    </p>
+                    <a href="/export/json" class="inline-block accent-bg text-rr-dark hover:opacity-90 font-medium px-6 py-2 rounded-lg transition-opacity">
+                        Download JSON
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Report Section -->
+        <div class="bg-[#27272a] border border-white/5 rounded-xl p-8 hover:border-white/10 transition-colors">
+            <div class="flex items-start gap-6 mb-8">
+                <div class="w-12 h-12 accent-text shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <rect x="8" y="12" width="8" height="6" rx="1"></rect>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-white text-xl font-serif mb-2">Generate PDF Report</h2>
+                    <p class="text-rr-text-dim text-sm leading-relaxed">
+                        Create a beautifully formatted PDF report of your ring preferences.
+                    </p>
+                </div>
+            </div>
+
+            <form action="/report/generate" method="GET" class="space-y-8">
+                <div>
+                    <h3 class="text-white font-serif text-sm uppercase tracking-wide mb-4">Theme</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col items-center gap-3 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="theme" value="dark" checked class="w-4 h-4 accent-[var(--accent-color)]">
+                            <div class="w-full h-16 bg-[#1F2023] rounded-lg border border-white/10 flex items-center justify-center">
+                                <span class="text-white text-xs font-serif">RING<span class="accent-text">RANK</span></span>
+                            </div>
+                            <span class="text-white font-medium text-sm">Dark Mode</span>
+                        </label>
+                        <label class="flex flex-col items-center gap-3 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="theme" value="light" class="w-4 h-4 accent-[var(--accent-color)]">
+                            <div class="w-full h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+                                <span class="text-gray-800 text-xs font-serif">RING<span class="text-[#c4868f]">RANK</span></span>
+                            </div>
+                            <span class="text-white font-medium text-sm">Light Mode</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-white font-serif text-sm uppercase tracking-wide mb-4">Scope</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-4 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="scope" value="top10" checked class="w-4 h-4 accent-[var(--accent-color)]">
+                            <span class="text-white font-medium">Top 10</span>
+                            <span class="text-rr-text-dim text-sm ml-auto">Show only the top 10 rings per category</span>
+                        </label>
+                        <label class="flex items-center gap-4 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="scope" value="all" class="w-4 h-4 accent-[var(--accent-color)]">
+                            <span class="text-white font-medium">All Rings</span>
+                            <span class="text-rr-text-dim text-sm ml-auto">Include complete rankings</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-white font-serif text-sm uppercase tracking-wide mb-4">Categories</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-4 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="category" value="all" checked class="w-4 h-4 accent-[var(--accent-color)]">
+                            <span class="text-white font-medium">All Categories</span>
+                            <span class="text-rr-text-dim text-sm ml-auto">Include all {{len .Categories}} categories</span>
+                        </label>
+                        {{range .Categories}}
+                        <label class="flex items-center gap-4 p-4 bg-rr-dark rounded-lg border border-white/5 cursor-pointer hover:border-white/10 transition-colors">
+                            <input type="radio" name="category" value="{{.}}" class="w-4 h-4 accent-[var(--accent-color)]">
+                            <span class="text-white font-medium">{{index $.CategoryLabels .}}</span>
+                            <span class="text-rr-text-dim text-sm ml-auto">{{index $.Stats .}} comparisons</span>
+                        </label>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/5">
+                    <button type="submit" class="accent-bg text-rr-dark hover:opacity-90 font-medium px-6 py-2 rounded-lg transition-opacity">
+                        Generate PDF Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="w-full px-8 border-t flex justify-between items-center text-xs tracking-widest font-medium text-rr-text-light mt-auto bg-rr-dark border-white/10 py-10">
+    <a href="/results" class="flex items-center gap-2 hover:text-rr-pink transition-colors">
+        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m15 18-6-6 6-6"></path></svg>
+        BACK TO RESULTS
+    </a>
+    <a href="/" class="hover:text-rr-pink transition-colors">
+        HOME
+    </a>
+</footer>
+
+{{template "footer" .}}

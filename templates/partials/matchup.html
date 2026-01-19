@@ -1,55 +1,62 @@
 {{define "matchup"}}
-<div class="prompt">{{.Prompt}}</div>
+<h2 class="text-xl md:text-2xl font-serif italic text-center text-rr-text-light mb-10">{{.Prompt}}</h2>
 
-<form class="matchup" hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML">
+<form class="flex flex-col md:flex-row justify-center items-stretch gap-8 mb-8" hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML">
     <input type="hidden" name="ring_a" value="{{.RingA}}">
     <input type="hidden" name="ring_b" value="{{.RingB}}">
 
-    <div class="ring-option">
-        <button type="submit" name="winner" value="{{.RingA}}" class="ring-btn" id="left-btn">
-            <img src="/rings/{{.RingA}}" alt="Ring A">
-            <span class="ring-label">&larr; Left (A)</span>
+    <!-- Left Ring -->
+    <div class="flex-1 max-w-md">
+        <button type="submit" name="winner" value="{{.RingA}}" class="w-full bg-white rounded-xl p-4 cursor-pointer hover:ring-2 hover:ring-rr-pink transition-all group" id="left-btn">
+            <img src="/rings/{{.RingA}}" alt="Ring A" class="w-full h-auto rounded-lg">
+            <span class="block mt-4 text-sm text-rr-gray uppercase tracking-wide group-hover:text-rr-dark font-medium">← Left (A)</span>
         </button>
     </div>
 
-    <div class="vs">VS</div>
+    <!-- VS Divider -->
+    <div class="flex items-center justify-center">
+        <span class="text-3xl font-serif accent-text">vs</span>
+    </div>
 
-    <div class="ring-option">
-        <button type="submit" name="winner" value="{{.RingB}}" class="ring-btn" id="right-btn">
-            <img src="/rings/{{.RingB}}" alt="Ring B">
-            <span class="ring-label">Right (D) &rarr;</span>
+    <!-- Right Ring -->
+    <div class="flex-1 max-w-md">
+        <button type="submit" name="winner" value="{{.RingB}}" class="w-full bg-white rounded-xl p-4 cursor-pointer hover:ring-2 hover:ring-rr-pink transition-all group" id="right-btn">
+            <img src="/rings/{{.RingB}}" alt="Ring B" class="w-full h-auto rounded-lg">
+            <span class="block mt-4 text-sm text-rr-gray uppercase tracking-wide group-hover:text-rr-dark font-medium">Right (D) →</span>
         </button>
     </div>
 </form>
 
-<div class="vote-controls">
-    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
+<!-- Action Buttons -->
+<div class="flex justify-center gap-4 flex-wrap">
+    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" class="inline">
         <input type="hidden" name="ring_a" value="{{.RingA}}">
         <input type="hidden" name="ring_b" value="{{.RingB}}">
-        <button type="submit" name="winner" value="same" class="btn btn-small" id="same-btn">
+        <button type="submit" name="winner" value="same" class="border border-white/20 text-rr-text-dim hover:border-rr-pink hover:text-rr-pink text-xs font-medium uppercase tracking-wide px-4 py-2 rounded-lg transition-colors" id="same-btn">
             Same (S)
         </button>
     </form>
-    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
+    <form hx-post="/vote/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" class="inline">
         <input type="hidden" name="ring_a" value="{{.RingA}}">
         <input type="hidden" name="ring_b" value="{{.RingB}}">
-        <button type="submit" name="winner" value="skip" class="btn btn-small" id="skip-btn">
+        <button type="submit" name="winner" value="skip" class="border border-white/20 text-rr-text-dim hover:border-rr-pink hover:text-rr-pink text-xs font-medium uppercase tracking-wide px-4 py-2 rounded-lg transition-colors" id="skip-btn">
             Skip (X)
         </button>
     </form>
-    <form hx-post="/undo/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" style="display: inline;">
-        <button type="submit" class="btn btn-small btn-danger" id="undo-btn">
+    <form hx-post="/undo/{{.Category}}" hx-target="#matchup-container" hx-swap="innerHTML" class="inline">
+        <button type="submit" class="border border-red-500/50 text-red-400 hover:border-red-500 hover:bg-red-500/10 text-xs font-medium uppercase tracking-wide px-4 py-2 rounded-lg transition-colors" id="undo-btn">
             Undo (Z)
         </button>
     </form>
 </div>
 
-<div class="keyboard-hint">
-    Keys: A/&larr; Left | D/&rarr; Right | S Same | X Skip | Z Undo
+<!-- Keyboard Hints -->
+<div class="text-center text-xs text-rr-text-dim mt-6 tracking-wide">
+    A/← Left | D/→ Right | S Same | X Skip | Z Undo
 </div>
 
 <!-- Out-of-band swaps for real-time progress updates -->
-<div id="progress-fill" hx-swap-oob="true" class="progress-fill" style="width: {{.Confidence}}%"></div>
+<div id="progress-fill" hx-swap-oob="true" class="h-full accent-bg transition-all duration-300" style="width: {{.Confidence}}%"></div>
 <span id="progress-count" hx-swap-oob="true">{{.Progress}}</span>
-<span id="confidence-text" hx-swap-oob="true" class="confidence">{{printf "%.0f" .Confidence}}% confident</span>
+<span id="confidence-text" hx-swap-oob="true" class="accent-text font-medium">{{printf "%.0f" .Confidence}}% confident</span>
 {{end}}

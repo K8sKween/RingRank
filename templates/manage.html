@@ -1,477 +1,164 @@
 {{template "header" .}}
 
-<div class="manage-container">
-    <h1>Manage Images</h1>
-    <p class="subtitle">{{.ImageCount}} images loaded</p>
+<div class="w-full max-w-6xl mx-auto p-8 lg:p-12">
+    <h1 class="text-4xl md:text-5xl font-serif text-center text-white mb-4">
+        Manage <span class="accent-text">Images</span>
+    </h1>
+    <p class="text-rr-text-dim text-center mb-12">{{.ImageCount}} images loaded</p>
 
-    <div class="upload-section">
-        <div class="drop-zone" id="drop-zone">
-            <div class="drop-zone-content">
-                <div class="drop-icon">+</div>
-                <p>Drag & drop images here</p>
-                <p class="drop-hint">or click to browse</p>
+    <!-- Upload Section -->
+    <div class="mb-16">
+        <div class="border-2 border-dashed border-white/20 rounded-xl p-16 text-center cursor-pointer hover:border-rr-pink/50 transition-colors" id="drop-zone">
+            <div class="w-16 h-16 mx-auto mb-6 accent-text">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+                    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+                    <path d="M4 17h16"></path>
+                    <polyline points="16 7 12 3 8 7"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="14"></line>
+                </svg>
             </div>
-            <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+            <p class="text-white text-lg font-light mb-2">Drag & drop images here</p>
+            <p class="text-rr-text-dim text-sm">or click to browse</p>
+            <input type="file" id="file-input" multiple accept="image/*" class="hidden">
         </div>
 
-        <div class="upload-buttons">
-            <button class="btn" onclick="document.getElementById('file-input').click()">
+        <div class="flex justify-center gap-4 mt-6">
+            <button class="accent-bg text-rr-dark hover:opacity-90 font-medium px-6 py-2 rounded-lg transition-opacity" onclick="document.getElementById('file-input').click()">
                 Select Files
             </button>
-            <button class="btn" onclick="document.getElementById('folder-input').click()">
+            <button class="border border-white/20 text-white hover:border-rr-pink hover:text-rr-pink font-medium px-6 py-2 rounded-lg transition-colors" onclick="document.getElementById('folder-input').click()">
                 Select Folder
             </button>
-            <input type="file" id="folder-input" webkitdirectory multiple accept="image/*" style="display: none;">
+            <input type="file" id="folder-input" webkitdirectory multiple accept="image/*" class="hidden">
         </div>
 
-        <div id="upload-status" class="upload-status"></div>
+        <div id="upload-status" class="text-center mt-4 min-h-[24px]"></div>
     </div>
 
-    <div class="categories-section">
-        <h2>Categories <span class="count">({{.CategoryCount}})</span></h2>
-        <div class="category-list" id="category-list">
+    <!-- Categories Section -->
+    <div class="mb-16">
+        <h2 class="text-2xl font-serif text-white mb-6 pb-4 border-b border-white/10">
+            Categories <span class="text-rr-text-dim font-sans text-base">({{.CategoryCount}})</span>
+        </h2>
+
+        <div class="space-y-3 mb-8" id="category-list">
             {{range .Categories}}
-            <div class="category-card" data-id="{{.ID}}">
-                <div class="category-info">
-                    <strong>{{.Label}}</strong>
-                    <span class="category-id">{{.ID}}</span>
-                    <span class="category-prompt">{{.Prompt}}</span>
+            <div class="flex justify-between items-center p-5 bg-[#27272a] rounded-xl border border-white/5 hover:border-white/10 transition-colors" data-id="{{.ID}}">
+                <div>
+                    <strong class="text-white font-serif text-lg">{{.Label}}</strong>
+                    <span class="text-rr-text-dim text-xs ml-2 font-mono">{{.ID}}</span>
+                    <p class="text-rr-text-dim text-sm italic mt-1">{{.Prompt}}</p>
                 </div>
-                <div class="category-actions">
-                    <button class="btn btn-small" onclick="editCategory('{{.ID}}', '{{.Label}}', '{{.Prompt}}')">Edit</button>
-                    <button class="btn btn-small" onclick="confirmDeleteCategory('{{.ID}}', '{{.Label}}')">Delete</button>
+                <div class="flex gap-2">
+                    <button class="border border-white/20 text-rr-text-dim hover:border-rr-pink hover:text-rr-pink text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-lg transition-colors" onclick="editCategory('{{.ID}}', '{{.Label}}', '{{.Prompt}}')">Edit</button>
+                    <button class="border border-white/20 text-rr-text-dim hover:border-red-400 hover:text-red-400 text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-lg transition-colors" onclick="confirmDeleteCategory('{{.ID}}', '{{.Label}}')">Delete</button>
                 </div>
             </div>
             {{end}}
         </div>
-        <div class="add-category-form">
-            <h3>Add New Category</h3>
-            <div class="form-row">
-                <input type="text" id="new-cat-label" placeholder="Label (e.g., Brilliance)" class="input input-wide">
+
+        <div class="bg-[#27272a] rounded-xl p-6 border border-white/5">
+            <h3 class="text-white font-serif text-lg mb-4">Add New Category</h3>
+            <div class="space-y-3">
+                <input type="text" id="new-cat-label" placeholder="Label (e.g., Brilliance)" class="w-full bg-rr-dark border border-white/10 rounded-lg px-4 py-3 text-white placeholder-rr-text-dim focus:border-rr-pink focus:outline-none transition-colors">
+                <input type="text" id="new-cat-prompt" placeholder="Prompt (e.g., Which has better brilliance?)" class="w-full bg-rr-dark border border-white/10 rounded-lg px-4 py-3 text-white placeholder-rr-text-dim focus:border-rr-pink focus:outline-none transition-colors">
+                <button class="accent-bg text-rr-dark hover:opacity-90 font-medium px-6 py-2 rounded-lg transition-opacity" onclick="addCategory()">Add Category</button>
             </div>
-            <div class="form-row">
-                <input type="text" id="new-cat-prompt" placeholder="Prompt (e.g., Which has better brilliance?)" class="input input-wide">
-            </div>
-            <button class="btn" onclick="addCategory()">Add Category</button>
         </div>
     </div>
 
-    <div class="images-section">
-        <h2>Current Images</h2>
-        <div class="image-grid" id="image-grid">
+    <!-- Images Section -->
+    <div>
+        <h2 class="text-2xl font-serif text-white mb-6 pb-4 border-b border-white/10">
+            Current Images
+        </h2>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="image-grid">
             {{range .Images}}
-            <div class="image-card" data-filename="{{.Filename}}">
-                <div class="image-wrapper">
-                    <img src="/rings/{{.Filename}}" alt="{{.Filename}}">
-                    <button class="delete-btn" onclick="confirmDelete('{{.Filename}}')" title="Delete">X</button>
+            <div class="bg-[#27272a] rounded-xl overflow-hidden border border-white/5 group hover:border-white/10 transition-colors" data-filename="{{.Filename}}">
+                <div class="relative aspect-square bg-white">
+                    <img src="/rings/{{.Filename}}" alt="{{.Filename}}" class="w-full h-full object-contain p-2">
+                    <button class="absolute top-2 right-2 w-7 h-7 bg-rr-dark/80 border border-white/20 rounded-lg text-white text-sm font-bold opacity-0 group-hover:opacity-100 hover:bg-red-600 hover:border-red-600 transition-all" onclick="confirmDelete('{{.Filename}}')" title="Delete">×</button>
                 </div>
-                <div class="image-info">
-                    <span class="image-name">{{.Filename}}</span>
-                    {{if .HasRankings}}<span class="has-rankings">Has rankings</span>{{end}}
+                <div class="p-3">
+                    <p class="text-xs text-rr-text-dim truncate">{{.Filename}}</p>
+                    {{if .HasRankings}}<p class="text-xs accent-text mt-1">Has rankings</p>{{end}}
                 </div>
             </div>
             {{else}}
-            <p class="no-images">No images yet. Upload some to get started!</p>
+            <p class="col-span-full text-center text-rr-text-dim py-16 font-light">No images yet. Upload some to get started!</p>
             {{end}}
         </div>
+
+        {{if .Images}}
+        <!-- Remove All Button -->
+        <div class="mt-8 pt-8 border-t border-white/10 flex justify-end">
+            <button onclick="confirmRemoveAll()" class="border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                Remove All Images
+            </button>
+        </div>
+        {{end}}
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal-overlay" id="delete-modal">
-    <div class="modal">
-        <h3>Delete Image?</h3>
-        <p class="modal-message" id="modal-message"></p>
-        <p class="modal-warning">This will also remove all rankings for this image.</p>
-        <label class="dont-ask-label">
-            <input type="checkbox" id="dont-ask-checkbox">
+<div class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm" id="delete-modal">
+    <div class="bg-rr-dark border border-white/10 rounded-xl p-8 max-w-md w-[90%] shadow-2xl">
+        <h3 class="text-xl font-serif text-white mb-4">Delete Image?</h3>
+        <p class="text-rr-text-light mb-2" id="modal-message"></p>
+        <p class="text-rr-text-dim text-sm mb-6">This will also remove all rankings for this image.</p>
+        <label class="flex items-center gap-2 text-sm text-rr-text-dim mb-6 cursor-pointer">
+            <input type="checkbox" id="dont-ask-checkbox" class="w-4 h-4 rounded accent-rr-pink">
             Don't ask again this session
         </label>
-        <div class="modal-buttons">
-            <button class="btn" onclick="closeModal()">Cancel</button>
-            <button class="btn btn-delete" id="confirm-delete-btn">Delete</button>
+        <div class="flex justify-end gap-3">
+            <button class="border border-white/20 text-rr-text-dim hover:text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="closeModal()">Cancel</button>
+            <button class="bg-red-600 text-white hover:bg-red-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors" id="confirm-delete-btn">Delete</button>
         </div>
     </div>
 </div>
 
 <!-- Edit Category Modal -->
-<div class="modal-overlay" id="edit-modal">
-    <div class="modal">
-        <h3>Edit Category</h3>
+<div class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm" id="edit-modal">
+    <div class="bg-rr-dark border border-white/10 rounded-xl p-8 max-w-md w-[90%] shadow-2xl">
+        <h3 class="text-xl font-serif text-white mb-4">Edit Category</h3>
         <input type="hidden" id="edit-cat-id">
-        <div class="form-row">
-            <input type="text" id="edit-cat-label" placeholder="Label" class="input input-wide">
+        <div class="space-y-3 mb-6">
+            <input type="text" id="edit-cat-label" placeholder="Label" class="w-full bg-[#27272a] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-rr-text-dim focus:border-rr-pink focus:outline-none transition-colors">
+            <input type="text" id="edit-cat-prompt" placeholder="Prompt" class="w-full bg-[#27272a] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-rr-text-dim focus:border-rr-pink focus:outline-none transition-colors">
         </div>
-        <div class="form-row">
-            <input type="text" id="edit-cat-prompt" placeholder="Prompt" class="input input-wide">
-        </div>
-        <div class="modal-buttons">
-            <button class="btn" onclick="closeEditModal()">Cancel</button>
-            <button class="btn" onclick="saveCategory()">Save</button>
+        <div class="flex justify-end gap-3">
+            <button class="border border-white/20 text-rr-text-dim hover:text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="closeEditModal()">Cancel</button>
+            <button class="accent-bg text-rr-dark hover:opacity-90 text-sm font-medium px-4 py-2 rounded-lg transition-opacity" onclick="saveCategory()">Save</button>
         </div>
     </div>
 </div>
 
-<!-- Delete Category Confirmation Modal -->
-<div class="modal-overlay" id="cat-delete-modal">
-    <div class="modal">
-        <h3>Delete Category?</h3>
-        <p class="modal-message" id="cat-modal-message"></p>
-        <p class="modal-warning">This will remove all rankings for this category.</p>
-        <div class="modal-buttons">
-            <button class="btn" onclick="closeCatDeleteModal()">Cancel</button>
-            <button class="btn btn-delete" onclick="deleteCategory()">Delete</button>
+<!-- Delete Category Modal -->
+<div class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm" id="cat-delete-modal">
+    <div class="bg-rr-dark border border-white/10 rounded-xl p-8 max-w-md w-[90%] shadow-2xl">
+        <h3 class="text-xl font-serif text-white mb-4">Delete Category?</h3>
+        <p class="text-rr-text-light mb-2" id="cat-modal-message"></p>
+        <p class="text-rr-text-dim text-sm mb-6">This will remove all rankings for this category.</p>
+        <div class="flex justify-end gap-3">
+            <button class="border border-white/20 text-rr-text-dim hover:text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="closeCatDeleteModal()">Cancel</button>
+            <button class="bg-red-600 text-white hover:bg-red-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="deleteCategory()">Delete</button>
         </div>
     </div>
 </div>
 
-<style>
-.manage-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    margin-bottom: 30px;
-}
-
-.upload-section {
-    margin-bottom: 40px;
-}
-
-.drop-zone {
-    border: 3px dashed var(--border-color);
-    border-radius: 8px;
-    padding: 60px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 20px;
-}
-
-.drop-zone:hover, .drop-zone.drag-over {
-    border-color: var(--accent-color);
-    background: var(--bg-secondary);
-}
-
-.drop-icon {
-    font-size: 48px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.drop-hint {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-.upload-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.upload-status {
-    margin-top: 15px;
-    text-align: center;
-    min-height: 24px;
-}
-
-.upload-status.success {
-    color: var(--success-color);
-}
-
-.upload-status.error {
-    color: var(--danger-color);
-}
-
-.images-section h2 {
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-.image-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
-}
-
-.image-card {
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    overflow: hidden;
-    background: var(--card-bg);
-}
-
-.image-wrapper {
-    position: relative;
-    width: 100%;
-    height: 150px;
-}
-
-.image-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.image-info {
-    padding: 8px;
-    font-size: 11px;
-}
-
-.image-name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.has-rankings {
-    display: block;
-    color: var(--success-color);
-    font-size: 10px;
-    margin-top: 4px;
-}
-
-.delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    border: 2px solid var(--border-color);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    opacity: 0;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.image-card:hover .delete-btn {
-    opacity: 1;
-}
-
-.delete-btn:hover {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: var(--bg-primary);
-}
-
-.no-images {
-    grid-column: 1 / -1;
-    text-align: center;
-    color: var(--text-secondary);
-    padding: 40px;
-}
-
-/* Modal styles */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-overlay.show {
-    display: flex;
-}
-
-.modal {
-    background: var(--bg-primary);
-    border: 3px solid var(--border-color);
-    border-radius: 8px;
-    padding: 24px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: var(--shadow);
-}
-
-.modal h3 {
-    margin: 0 0 16px 0;
-    font-size: 18px;
-}
-
-.modal-message {
-    margin: 0 0 8px 0;
-    word-break: break-all;
-}
-
-.modal-warning {
-    color: var(--text-secondary);
-    font-size: 13px;
-    margin: 0 0 16px 0;
-}
-
-.dont-ask-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-    cursor: pointer;
-}
-
-.dont-ask-label input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.btn-delete {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border: 2px solid var(--border-color);
-}
-
-.btn-delete:hover {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: var(--bg-primary);
-}
-
-/* Category Management */
-.categories-section {
-    margin-bottom: 40px;
-}
-
-.categories-section h2 {
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-.categories-section h2 .count {
-    font-weight: normal;
-    color: var(--text-secondary);
-}
-
-.category-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.category-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--card-bg);
-    text-align: left;
-}
-
-.category-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: left;
-}
-
-.category-info strong,
-.category-info span {
-    margin: 0;
-    padding: 0;
-    text-align: left;
-}
-
-.category-id {
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-family: monospace;
-}
-
-.category-prompt {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-style: italic;
-}
-
-.category-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.add-category-form {
-    padding: 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--bg-secondary);
-}
-
-.add-category-form h3 {
-    margin: 0 0 15px 0;
-    font-size: 14px;
-}
-
-.form-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.input {
-    padding: 8px 12px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    font-size: 14px;
-    flex: 1;
-}
-
-.input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-}
-
-.input-wide {
-    width: 100%;
-}
-
-.btn-small {
-    padding: 4px 10px;
-    font-size: 12px;
-}
-
-.category-actions .btn-small {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-.category-actions .btn-small:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--text-primary);
-}
-</style>
+<!-- Remove All Images Modal -->
+<div class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center backdrop-blur-sm" id="remove-all-modal">
+    <div class="bg-rr-dark border border-white/10 rounded-xl p-8 max-w-md w-[90%] shadow-2xl">
+        <h3 class="text-xl font-serif text-white mb-4">Remove All Images?</h3>
+        <p class="text-rr-text-light mb-2">This will delete all {{.ImageCount}} images.</p>
+        <p class="text-rr-text-dim text-sm mb-6">All rankings and comparison data will be permanently lost. This cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+            <button class="border border-white/20 text-rr-text-dim hover:text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="closeRemoveAllModal()">Cancel</button>
+            <button class="bg-red-600 text-white hover:bg-red-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors" onclick="removeAllImages()">Remove All</button>
+        </div>
+    </div>
+</div>
 
 <script>
 const dropZone = document.getElementById('drop-zone');
@@ -491,16 +178,16 @@ dropZone.addEventListener('click', () => fileInput.click());
 
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('drag-over');
+    dropZone.classList.add('border-rr-pink/50');
 });
 
 dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
+    dropZone.classList.remove('border-rr-pink/50');
 });
 
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('drag-over');
+    dropZone.classList.remove('border-rr-pink/50');
     handleFiles(e.dataTransfer.files);
 });
 
@@ -523,12 +210,12 @@ async function handleFiles(files) {
 
     if (count === 0) {
         status.textContent = 'No valid images selected';
-        status.className = 'upload-status error';
+        status.className = 'text-center mt-4 min-h-[24px] text-red-400';
         return;
     }
 
     status.textContent = `Uploading ${count} image(s)...`;
-    status.className = 'upload-status';
+    status.className = 'text-center mt-4 min-h-[24px] text-rr-text-dim';
 
     try {
         const response = await fetch('/upload', {
@@ -540,14 +227,14 @@ async function handleFiles(files) {
 
         if (result.success) {
             status.textContent = `Successfully uploaded ${result.uploaded} image(s)`;
-            status.className = 'upload-status success';
+            status.className = 'text-center mt-4 min-h-[24px] accent-text';
             setTimeout(() => location.reload(), 1000);
         } else {
             throw new Error('Upload failed');
         }
     } catch (err) {
         status.textContent = 'Upload failed: ' + err.message;
-        status.className = 'upload-status error';
+        status.className = 'text-center mt-4 min-h-[24px] text-red-400';
     }
 }
 
@@ -559,11 +246,13 @@ function confirmDelete(filename) {
 
     pendingFilename = filename;
     modalMessage.textContent = `Delete "${filename}"?`;
-    modal.classList.add('show');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeModal() {
-    modal.classList.remove('show');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
     pendingFilename = null;
 }
 
@@ -577,17 +266,17 @@ confirmBtn.addEventListener('click', () => {
     closeModal();
 });
 
-// Close modal on overlay click
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
         closeModal();
     }
 });
 
-// Close modal on Escape
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('show')) {
-        closeModal();
+    if (e.key === 'Escape') {
+        if (!modal.classList.contains('hidden')) closeModal();
+        if (!document.getElementById('edit-modal').classList.contains('hidden')) closeEditModal();
+        if (!document.getElementById('cat-delete-modal').classList.contains('hidden')) closeCatDeleteModal();
     }
 });
 
@@ -604,10 +293,6 @@ async function deleteImage(filename) {
         if (result.success) {
             const card = document.querySelector(`[data-filename="${filename}"]`);
             if (card) card.remove();
-
-            const countEl = document.querySelector('.subtitle');
-            const currentCount = parseInt(countEl.textContent);
-            countEl.textContent = `${currentCount - 1} images loaded`;
         }
     } catch (err) {
         alert('Failed to delete: ' + err.message);
@@ -618,11 +303,11 @@ async function deleteImage(filename) {
 function generateId(label) {
     return label
         .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')  // Remove special characters
-        .replace(/\s+/g, '_')          // Replace spaces with underscores
-        .replace(/^_+|_+$/g, '')       // Trim leading/trailing underscores
-        .replace(/_+/g, '_')           // Collapse multiple underscores
-        || 'category';                 // Fallback if empty
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .replace(/_+/g, '_')
+        || 'category';
 }
 
 async function addCategory() {
@@ -662,11 +347,13 @@ function editCategory(id, label, prompt) {
     document.getElementById('edit-cat-id').value = id;
     document.getElementById('edit-cat-label').value = label;
     document.getElementById('edit-cat-prompt').value = prompt;
-    document.getElementById('edit-modal').classList.add('show');
+    document.getElementById('edit-modal').classList.remove('hidden');
+    document.getElementById('edit-modal').classList.add('flex');
 }
 
 function closeEditModal() {
-    document.getElementById('edit-modal').classList.remove('show');
+    document.getElementById('edit-modal').classList.add('hidden');
+    document.getElementById('edit-modal').classList.remove('flex');
 }
 
 async function saveCategory() {
@@ -702,11 +389,13 @@ function confirmDeleteCategory(id, label) {
     pendingCategoryId = id;
     pendingCategoryLabel = label;
     document.getElementById('cat-modal-message').textContent = `Delete category "${label}"?`;
-    document.getElementById('cat-delete-modal').classList.add('show');
+    document.getElementById('cat-delete-modal').classList.remove('hidden');
+    document.getElementById('cat-delete-modal').classList.add('flex');
 }
 
 function closeCatDeleteModal() {
-    document.getElementById('cat-delete-modal').classList.remove('show');
+    document.getElementById('cat-delete-modal').classList.add('hidden');
+    document.getElementById('cat-delete-modal').classList.remove('flex');
     pendingCategoryId = null;
     pendingCategoryLabel = null;
 }
@@ -726,12 +415,8 @@ async function deleteCategory() {
         if (result.success) {
             const card = document.querySelector(`.category-card[data-id="${pendingCategoryId}"]`);
             if (card) card.remove();
-
-            const countEl = document.querySelector('.categories-section h2 .count');
-            const currentCount = parseInt(countEl.textContent.match(/\d+/)[0]);
-            countEl.textContent = `(${currentCount - 1})`;
-
             closeCatDeleteModal();
+            location.reload();
         } else {
             alert(result.error || 'Failed to delete category');
         }
@@ -740,7 +425,6 @@ async function deleteCategory() {
     }
 }
 
-// Close modals on overlay click
 document.getElementById('edit-modal').addEventListener('click', (e) => {
     if (e.target.id === 'edit-modal') closeEditModal();
 });
@@ -748,18 +432,41 @@ document.getElementById('cat-delete-modal').addEventListener('click', (e) => {
     if (e.target.id === 'cat-delete-modal') closeCatDeleteModal();
 });
 
-// Close modals on Escape (extend existing handler)
-const origKeyHandler = document.onkeydown;
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        if (document.getElementById('edit-modal').classList.contains('show')) {
-            closeEditModal();
-        }
-        if (document.getElementById('cat-delete-modal').classList.contains('show')) {
-            closeCatDeleteModal();
-        }
-    }
+// Remove All Images
+const removeAllModal = document.getElementById('remove-all-modal');
+
+function confirmRemoveAll() {
+    removeAllModal.classList.remove('hidden');
+    removeAllModal.classList.add('flex');
+}
+
+function closeRemoveAllModal() {
+    removeAllModal.classList.add('hidden');
+    removeAllModal.classList.remove('flex');
+}
+
+removeAllModal.addEventListener('click', (e) => {
+    if (e.target === removeAllModal) closeRemoveAllModal();
 });
+
+async function removeAllImages() {
+    try {
+        const response = await fetch('/delete-all-images', {
+            method: 'POST'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            closeRemoveAllModal();
+            location.reload();
+        } else {
+            alert(result.error || 'Failed to remove all images');
+        }
+    } catch (err) {
+        alert('Failed to remove all images: ' + err.message);
+    }
+}
 </script>
 
 {{template "footer" .}}

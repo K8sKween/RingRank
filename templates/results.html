@@ -1,74 +1,171 @@
 {{template "header" .}}
 
-<h1>Your Preferences</h1>
-
-{{range $cat := .Categories}}
-<section class="results-section">
-    <div class="results-header">
-        <h2>{{index $.CategoryLabels $cat}}</h2>
-        <div>
-            <span style="opacity: 0.7; margin-right: 1rem;">
-                {{index $.Stats $cat}} comparisons |
-                {{index $.Confidence $cat}}% confident
-            </span>
-            <a href="/vote/{{$cat}}" class="btn btn-small">Continue</a>
-            <form action="/reset/{{$cat}}" method="POST" style="display: inline;"
-                  onsubmit="return confirm('Reset all {{index $.CategoryLabels $cat}} scores? This cannot be undone.')">
-                <button type="submit" class="btn btn-small btn-danger">Reset</button>
-            </form>
-        </div>
-    </div>
-
+<div class="w-full max-w-[1600px] mx-auto p-8 lg:p-12">
+    {{range $cat := .Categories}}
     {{$rankings := index $.Rankings $cat}}
-    {{if $rankings}}
-    <ol class="ranking-list" id="list-{{$cat}}">
-        {{range $i, $ring := $rankings}}
-        <li class="ranking-item {{if ge $i 10}}hidden-item{{end}}" data-index="{{$i}}">
-            <span class="rank">{{add $i 1}}</span>
-            <img src="/rings/{{$ring.Filename}}" alt="{{$ring.Filename}}" class="ranking-thumb">
-            <div class="ranking-info">
-                <div class="ranking-name">{{$ring.Filename}}</div>
-                <div class="ranking-score">
-                    <div class="score-bar">
-                        <div class="score-fill" style="width: {{percent (index $ring.Scores $cat)}}%"></div>
-                    </div>
-                    <span class="score-value">{{printf "%.0f" (index $ring.Scores $cat)}}</span>
-                    <span class="rd-indicator {{rdClass (index $ring.RD $cat)}}" title="Confidence: {{rdConfidence (index $ring.RD $cat)}}%">
-                        ±{{printf "%.0f" (index $ring.RD $cat)}}
-                    </span>
-                </div>
-            </div>
-        </li>
-        {{end}}
-    </ol>
-    {{if gt (len $rankings) 10}}
-    <button class="btn btn-small expand-btn" onclick="toggleList('{{$cat}}')" id="btn-{{$cat}}">
-        Show all {{len $rankings}} rings
-    </button>
-    {{end}}
-    {{else}}
-    <div class="empty-state">No comparisons yet. <a href="/vote/{{$cat}}">Start voting</a></div>
-    {{end}}
-</section>
-{{end}}
+    {{$catLabel := index $.CategoryLabels $cat}}
+    {{$confidence := index $.Confidence $cat}}
+    {{$stats := index $.Stats $cat}}
 
-<div style="text-align: center; margin-top: 2rem;">
-    <a href="/export" class="btn">Export JSON</a>
+    {{if $rankings}}
+    <!-- Category Section -->
+    <section class="mb-24">
+        <!-- Hero Section: #1 Result -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 mb-16">
+            <!-- Large Number 1 -->
+            <div class="xl:col-span-1 flex justify-start xl:justify-center">
+                <span class="text-[10rem] xl:text-[12rem] leading-none accent-text font-serif">1</span>
+            </div>
+
+            <!-- Hero Content -->
+            <div class="xl:col-span-11 flex flex-col justify-center">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-serif mb-10 text-white">
+                    Your Personal '{{$catLabel}}'<br/>Aesthetic: Unveiled.
+                </h1>
+
+                {{with index $rankings 0}}
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <!-- Hero Image -->
+                    <div class="flex flex-col gap-2">
+                        <div class="w-48 h-48 bg-white rounded-xl p-2 flex items-center justify-center shadow-lg shadow-black/20">
+                            <img src="/rings/{{.Filename}}" alt="{{.Filename}}" class="w-full h-full object-contain">
+                        </div>
+                        <span class="text-xs text-rr-text-dim text-center">{{.Filename}}</span>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="flex-1 w-full max-w-4xl pt-2">
+                        <div class="flex flex-col gap-6">
+                            <!-- Confidence Box & Progress Bar -->
+                            <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+                                <div class="bg-[#2d2d30] px-5 py-3 rounded-lg flex flex-col items-center justify-center min-w-[110px]">
+                                    <span class="text-3xl font-bold text-white leading-none">{{$confidence}}%</span>
+                                    <span class="text-[10px] uppercase tracking-widest text-rr-text-dim mt-1">Confident</span>
+                                </div>
+                                <div class="h-4 bg-rr-gray rounded-full w-full relative overflow-hidden flex-1">
+                                    <div class="absolute top-0 left-0 h-full accent-bg rounded-full" style="width: {{$confidence}}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="text-lg text-rr-text-light/90 max-w-xl font-light leading-relaxed">
+                                Based on {{$stats}} comparisons, this selection reflects your refined taste and personal style preferences.
+                            </p>
+
+                            <!-- Actions -->
+                            <div class="flex gap-4 mt-2">
+                                <a href="/vote/{{$cat}}" class="text-xs uppercase tracking-wide text-rr-text-dim hover:text-rr-pink transition-colors">Continue Voting</a>
+                                <form action="/reset/{{$cat}}" method="POST" class="inline" onsubmit="return confirm('Reset all {{$catLabel}} scores? This cannot be undone.')">
+                                    <button type="submit" class="text-xs uppercase tracking-wide text-rr-text-dim hover:text-red-400 transition-colors">Reset Category</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Secondary Results Grid (2-10) -->
+        {{if gt (len $rankings) 1}}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-16" id="results-grid-{{$cat}}">
+            {{range $i, $ring := $rankings}}
+            {{if and (gt $i 0) (lt $i 10)}}
+            <article class="flex gap-4 items-center">
+                <span class="font-serif accent-text w-16 text-right text-5xl">{{add $i 1}}.</span>
+                <div class="w-24 h-24 bg-white rounded-lg p-1 shrink-0">
+                    <img src="/rings/{{$ring.Filename}}" alt="{{$ring.Filename}}" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 flex flex-col gap-1">
+                    <span class="text-sm text-rr-text-light mb-1 truncate">{{$ring.Filename}}</span>
+                    <div class="h-3 bg-rr-gray rounded-full w-full relative overflow-hidden mb-1">
+                        <div class="absolute top-0 left-0 h-full accent-bg rounded-full" style="width: {{percent (index $ring.Scores $cat)}}%"></div>
+                    </div>
+                    <div class="flex justify-between uppercase text-rr-text-dim tracking-wide text-xs">
+                        <span>{{printf "%.0f" (index $ring.Scores $cat)}}</span>
+                        <span>±{{printf "%.0f" (index $ring.RD $cat)}}</span>
+                    </div>
+                </div>
+            </article>
+            {{end}}
+            {{end}}
+        </div>
+        {{end}}
+
+        <!-- Show More Button -->
+        {{if gt (len $rankings) 10}}
+        <div class="mt-12 text-center">
+            <button onclick="toggleMoreResults('{{$cat}}')" id="toggle-btn-{{$cat}}" class="text-xs uppercase tracking-widest text-rr-text-dim hover:text-rr-pink transition-colors">
+                Show all {{len $rankings}} results ↓
+            </button>
+        </div>
+
+        <!-- Hidden Results (11+) -->
+        <div id="more-results-{{$cat}}" class="hidden mt-12 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-12 gap-y-16">
+            {{range $i, $ring := $rankings}}
+            {{if ge $i 10}}
+            <article class="flex gap-4 items-center">
+                <span class="font-serif accent-text w-16 text-right text-5xl">{{add $i 1}}.</span>
+                <div class="w-24 h-24 bg-white rounded-lg p-1 shrink-0">
+                    <img src="/rings/{{$ring.Filename}}" alt="{{$ring.Filename}}" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 flex flex-col gap-1">
+                    <span class="text-sm text-rr-text-light mb-1 truncate">{{$ring.Filename}}</span>
+                    <div class="h-3 bg-rr-gray rounded-full w-full relative overflow-hidden mb-1">
+                        <div class="absolute top-0 left-0 h-full accent-bg rounded-full" style="width: {{percent (index $ring.Scores $cat)}}%"></div>
+                    </div>
+                    <div class="flex justify-between uppercase text-rr-text-dim tracking-wide text-xs">
+                        <span>{{printf "%.0f" (index $ring.Scores $cat)}}</span>
+                        <span>±{{printf "%.0f" (index $ring.RD $cat)}}</span>
+                    </div>
+                </div>
+            </article>
+            {{end}}
+            {{end}}
+        </div>
+        {{end}}
+
+        <!-- Category Divider -->
+        <div class="border-t border-white/5 mt-20"></div>
+    </section>
+    {{else}}
+    <!-- Empty State -->
+    <section class="mb-24 text-center py-20">
+        <h2 class="text-3xl font-serif text-white mb-4">{{$catLabel}}</h2>
+        <p class="text-rr-text-dim mb-6">No comparisons yet for this category.</p>
+        <a href="/vote/{{$cat}}" class="inline-block px-6 py-2 accent-bg text-rr-dark rounded-lg font-medium hover:opacity-90 transition-opacity">
+            Start Voting
+        </a>
+    </section>
+    {{end}}
+    {{end}}
 </div>
 
+<!-- Footer -->
+<footer class="w-full px-8 border-t flex justify-between items-center text-xs tracking-widest font-medium text-rr-text-light mt-auto bg-rr-dark border-white/10 py-10">
+    <a href="/categories" class="flex items-center gap-2 hover:text-rr-pink transition-colors">
+        <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="m15 18-6-6 6-6"></path></svg>
+        BACK TO CATEGORIES
+    </a>
+    <a href="/export" class="hover:text-rr-pink transition-colors">
+        EXPORT DATA
+    </a>
+</footer>
+
 <script>
-function toggleList(cat) {
-    const list = document.getElementById('list-' + cat);
-    const btn = document.getElementById('btn-' + cat);
-    const hiddenItems = list.querySelectorAll('.hidden-item');
-    const isExpanded = btn.dataset.expanded === 'true';
+function toggleMoreResults(cat) {
+    const moreResults = document.getElementById('more-results-' + cat);
+    const btn = document.getElementById('toggle-btn-' + cat);
+    const isHidden = moreResults.classList.contains('hidden');
 
-    hiddenItems.forEach(item => {
-        item.style.display = isExpanded ? 'none' : 'flex';
-    });
-
-    btn.dataset.expanded = isExpanded ? 'false' : 'true';
-    btn.textContent = isExpanded ? 'Show all ' + (list.children.length) + ' rings' : 'Show top 10 only';
+    if (isHidden) {
+        moreResults.classList.remove('hidden');
+        btn.textContent = 'Show top 10 only ↑';
+    } else {
+        moreResults.classList.add('hidden');
+        const count = moreResults.querySelectorAll('article').length + 10;
+        btn.textContent = 'Show all ' + count + ' results ↓';
+    }
 }
 </script>
 

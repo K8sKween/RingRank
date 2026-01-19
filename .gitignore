@@ -25,3 +25,7 @@ Thumbs.db
 # Build artifacts
 dist/
 *.zip
+ringrank-darwin-amd64
+ringrank-linux-amd64
+ringrank-darwin-arm64
+ringrank-linux-arm64

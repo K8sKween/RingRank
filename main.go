@@ -873,7 +873,22 @@ func (app *App) handleReset(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/vote/"+category, http.StatusSeeOther)
 }
 
-func (app *App) handleExport(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleExportPage(w http.ResponseWriter, r *http.Request) {
+	stats := app.getCategoryStats()
+	data := struct {
+		Categories     []string
+		CategoryLabels map[string]string
+		Stats          map[string]int
+	}{
+		Categories:     app.getCategoryIDs(),
+		CategoryLabels: app.getCategoryLabelsMap(),
+		Stats:          stats,
+	}
+
+	app.templates.ExecuteTemplate(w, "export.html", data)
+}
+
+func (app *App) handleExportJSON(w http.ResponseWriter, r *http.Request) {
 	app.mu.RLock()
 	defer app.mu.RUnlock()
 
@@ -881,6 +896,23 @@ func (app *App) handleExport(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=ring_preferences.json")
 
 	json.NewEncoder(w).Encode(app.results)
+}
+
+func (app *App) handleCategories(w http.ResponseWriter, r *http.Request) {
+	stats := app.getCategoryStats()
+	data := struct {
+		Categories     []string
+		CategoryLabels map[string]string
+		Stats          map[string]int
+		TotalRings     int
+	}{
+		Categories:     app.getCategoryIDs(),
+		CategoryLabels: app.getCategoryLabelsMap(),
+		Stats:          stats,
+		TotalRings:     len(app.results.Rings),
+	}
+
+	app.templates.ExecuteTemplate(w, "categories.html", data)
 }
 
 // Report data structures
@@ -919,12 +951,14 @@ type ReportData struct {
 	Categories               []ReportCategory
 	ShowCrossCategorySummary bool
 	RingSummaries            []RingSummary
+	DarkMode                 bool
 }
 
 func (app *App) handleReport(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters
 	scope := r.URL.Query().Get("scope")       // "top10" or "all"
 	category := r.URL.Query().Get("category") // specific category or "all"
+	theme := r.URL.Query().Get("theme")       // "dark" or "light"
 
 	if scope == "" {
 		scope = "top10"
@@ -932,9 +966,13 @@ func (app *App) handleReport(w http.ResponseWriter, r *http.Request) {
 	if category == "" {
 		category = "all"
 	}
+	if theme == "" {
+		theme = "dark"
+	}
 
 	showTopOnly := scope == "top10"
 	topCount := 10
+	darkMode := theme == "dark"
 
 	// Build report data
 	app.mu.RLock()
@@ -946,6 +984,7 @@ func (app *App) handleReport(w http.ResponseWriter, r *http.Request) {
 		TopCount:         topCount,
 		SingleCategory:   category != "all",
 		TotalComparisons: 0,
+		DarkMode:         darkMode,
 	}
 
 	// Determine which categories to include
@@ -1454,6 +1493,46 @@ func (app *App) handleDeleteImage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (app *App) handleDeleteAllImages(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get list of all image files
+	files, err := os.ReadDir(app.ringsDir)
+	if err != nil {
+		http.Error(w, "Failed to read directory", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete all image files
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		ext := strings.ToLower(filepath.Ext(file.Name()))
+		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp" {
+			filePath := filepath.Join(app.ringsDir, file.Name())
+			os.Remove(filePath)
+		}
+	}
+
+	// Clear all rings and comparisons from results
+	app.mu.Lock()
+	app.results.Rings = make(map[string]*Ring)
+	app.results.Comparisons = make(map[string][]Comparison)
+	app.mu.Unlock()
+
+	// Save results
+	app.saveResults()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+	})
+}
+
 // Category Management Handlers
 func (app *App) handleAddCategory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -1630,16 +1709,19 @@ func main() {
 
 	// Routes
 	http.HandleFunc("/", app.handleIndex)
+	http.HandleFunc("/categories", app.handleCategories)
 	http.HandleFunc("/vote/", app.handleVote)
 	http.HandleFunc("/results", app.handleResults)
 	http.HandleFunc("/reset/", app.handleReset)
 	http.HandleFunc("/undo/", app.handleUndo)
-	http.HandleFunc("/export", app.handleExport)
+	http.HandleFunc("/export", app.handleExportPage)
+	http.HandleFunc("/export/json", app.handleExportJSON)
 	http.HandleFunc("/report", app.handleReportPage)
 	http.HandleFunc("/report/generate", app.handleReport)
 	http.HandleFunc("/manage", app.handleManage)
 	http.HandleFunc("/upload", app.handleUpload)
 	http.HandleFunc("/delete-image", app.handleDeleteImage)
+	http.HandleFunc("/delete-all-images", app.handleDeleteAllImages)
 	http.HandleFunc("/add-category", app.handleAddCategory)
 	http.HandleFunc("/delete-category", app.handleDeleteCategory)
 	http.HandleFunc("/update-category", app.handleUpdateCategory)
